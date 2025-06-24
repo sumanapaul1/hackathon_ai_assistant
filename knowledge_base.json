@@ -1,0 +1,518 @@
+{
+    "properties": [
+        {
+            "name": "STONE Creek Apartment and Homes",
+            "address": "2700 Trimmier Rd Killeen, TX 76542",
+            "floorplans": [
+                {
+                    "class": "A1",
+                    "range": "575 sqft",
+                    "range_price": "$1,130 - $1,380",
+                    "rooms": [
+
+                        {
+                            "type": "1BHK",
+                            "size": "575 sqft",
+                            "price": "$1,095/month",
+                            "occupancy": "1-2 persons",
+                            "level": "Ground",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "Ground Floor"
+                            ]
+                        },
+                        {
+                            "type": "1BHK",
+                            "size": "575 sqft",
+                            "price": "$1,195/month",
+                            "occupancy": "1-2 persons",
+                            "level": "First",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "First Floor",
+                                "lift access"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "class": "A2",
+                    "range": "597 sqft",
+                    "range_price": "$1,180-$1,280",
+                    "rooms": [
+
+                        {
+                            "type": "1BHK",
+                            "size": "597 sqft",
+                            "price": "$1,130/month",
+                            "occupancy": "1-2 persons",
+                            "level": "Ground",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "Ground Floor"
+                            ]
+                        },
+                        {
+                            "type": "1BHK",
+                            "size": "597 sqft",
+                            "price": "$1,220/month",
+                            "occupancy": "1-2 persons",
+                            "level": "First",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "First Floor",
+                                "lift access"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "class": "A3",
+                    "range": "681 sqft",
+                    "range_price": "$1,180-$1,280",
+                    "rooms": [
+
+                        {
+                            "type": "1BHK",
+                            "size": "681 sqft",
+                            "price": "$1,235/month",
+                            "occupancy": "1-2 persons",
+                            "level": "Ground",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "Ground Floor"
+                            ]
+                        },
+                        {
+                            "type": "1BHK",
+                            "size": "681 sqft",
+                            "price": "$1,285/month",
+                            "occupancy": "1-2 persons",
+                            "level": "First",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "First Floor",
+                                "lift access"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "class": "A4",
+                    "range": "683 sqft",
+                    "range_price": "$1,235-$1,480",
+                    "rooms": [
+
+                        {
+                            "type": "1BHK",
+                            "size": "681 sqft",
+                            "price": "$1,235/month",
+                            "occupancy": "1-2 persons",
+                            "level": "Ground",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "Ground Floor"
+                            ]
+                        },
+                        {
+                            "type": "1BHK",
+                            "size": "681 sqft",
+                            "price": "$1,290/month",
+                            "occupancy": "1-2 persons",
+                            "level": "First",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "First Floor",
+                                "lift access"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "class": "B1",
+                    "range": "896 sqft",
+                    "range_price": "$1,180-$1,280",
+                    "rooms": [
+
+                        {
+                            "type": "2BHK",
+                            "size": "896 sqft",
+                            "price": "$1,335/month",
+                            "occupancy": "4 persons",
+                            "level": "Ground",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "Ground Floor"
+                            ]
+                        },
+                        {
+                            "type": "2BHK",
+                            "size": "896 sqft",
+                            "price": "$1,385/month",
+                            "occupancy": "4 persons",
+                            "level": "First",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "First Floor",
+                                "lift access"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "class": "c1",
+                    "range": "908 sqft",
+                    "range_price": "$1,380-$1,560",
+                    "rooms": [
+
+                        {
+                            "type": "2BHK",
+                            "size": "908 sqft",
+                            "price": "$1,380/month",
+                            "occupancy": "4 persons",
+                            "level": "Ground",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "Ground Floor"
+                            ]
+                        },
+                        {
+                            "type": "2BHK",
+                            "size": "908 sqft",
+                            "price": "$1,430/month",
+                            "occupancy": "4 persons",
+                            "level": "First",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "First Floor",
+                                "lift access"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "class": "c2",
+                    "range": "962 sqft",
+                    "range_price": "$1,410-$1,680",
+                    "rooms": [
+
+                        {
+                            "type": "2BHK",
+                            "size": "962 sqft",
+                            "price": "$1,410/month",
+                            "occupancy": "4 persons",
+                            "level": "Ground",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "Ground Floor"
+                            ]
+                        },
+                        {
+                            "type": "2BHK",
+                            "size": "962 sqft",
+                            "price": "$1,460/month",
+                            "occupancy": "4 persons",
+                            "level": "First",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "First Floor",
+                                "lift access"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "class": "c3",
+                    "range": "989 sqft",
+                    "range_price": "$1,490-$1,730",
+                    "rooms": [
+
+                        {
+                            "type": "2BHK",
+                            "size": "989 sqft",
+                            "price": "$1,490/month",
+                            "occupancy": "4 persons",
+                            "level": "Ground",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "Ground Floor"
+                            ]
+                        },
+                        {
+                            "type": "2BHK",
+                            "size": "989 sqft",
+                            "price": "$1,540/month",
+                            "occupancy": "4 persons",
+                            "level": "First",
+                            "features": [
+                                "Air Conditioning",
+                                "Ceiling Fans",
+                                "Dishwasher",
+                                "Disposal",
+                                "Microwave",
+                                "Refrigerator",
+                                "Washer/Dryer Connections",
+                                "Walk-In Closets",
+                                "First Floor",
+                                "lift access"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "amenities": [
+                "Swimming Pool",
+                "Fitness Center",
+                "Pet Friendly",
+                "Laundry Facilities",
+                "Parking Available",
+                "On-Site Management",
+                "24-Hour Emergency Maintenance",
+                "Gated Community",
+                "Clubhouse",
+                "Business Center",
+                "Playground",
+                "Outdoor Grilling Area",
+                "Package Receiving",
+                "Controlled Access",
+                "High-Speed Internet Access",
+                "Air Conditioning",
+                "Ceiling Fans",
+                "Dishwasher",
+                "Disposal",
+                "Microwave",
+                "Refrigerator",
+                "Washer/Dryer Connections",
+                "Walk-In Closets",
+                "Balcony/Patio",
+                "Fireplace*",
+                "Hardwood Floors*",
+                "Carpeting",
+                "Vaulted Ceilings*",
+                "Window Coverings",
+                "Cable Ready",
+                "Additional Storage",
+                "Fenced Yard*",
+                "Garden Tub*",
+                "Linen Closet"
+            ], 
+            "vacancies": [
+                {
+                    "class": "A1",
+                    "unit": "A101",
+                    "type": "1BHK",
+                    "price": "$1100/month",
+                    "appointment_slots": [
+                        "2025-06-25T16:00:00",
+                        "2025-06-27T16:00:00",
+                        "2025-06-28T16:00:00"
+                    ]
+                    
+                },
+                {
+                    "class": "A1",
+                    "unit": "A101",
+                    "type": "1BHK",
+                    "price": "$1200/month",
+                    "appointment_slots": [
+                        "2025-06-25T16:00:00",
+                        "2025-06-27T16:00:00",
+                        "2025-06-28T16:00:00"
+                    ]
+                },
+                {
+                    "class": "A2",
+                    "unit": "A1101",
+                    "type": "1BHK",
+                    "price": "$1130/month",
+                    "appointment_slots": [
+                        "2025-06-25T16:00:00",
+                        "2025-06-27T16:00:00",
+                        "2025-06-28T16:00:00"
+                    ]
+                },
+                {
+                    "class": "A2",
+                    "unit": "A2101",
+                    "type": "1BHK",
+                    "price": "$1220/month",
+                    "appointment_slots": [
+                        "2025-06-25T16:00:00",
+                        "2025-06-27T16:00:00",
+                        "2025-06-28T16:00:00"
+                    ]
+                },
+                {
+                    "class": "A3",
+                    "unit": "A3101",
+                    "type": "1BHK",
+                    "price": "$1285/month",
+                    "appointment_slots": [
+                        "2025-06-27T16:00:00",
+                        "2025-06-28T16:00:00"
+                    ]
+                },
+                {
+                    "class": "A4",
+                    "unit": "A4101",
+                    "type": "1BHK",
+                    "price": "$1290/month",
+                    "appointment_slots": [
+                        "2025-06-25T16:00:00",
+                        "2025-06-27T16:00:00",
+                        "2025-06-28T16:00:00"
+                    ]
+                },
+                {
+                    "class": "B1",
+                    "unit": "A101",
+                    "type": "1BHK",
+                    "price": "$1335/month",
+                    "appointment_slots": [
+                        "2025-06-25T16:00:00",
+                        "2025-06-27T16:00:00",
+                        "2025-06-28T16:00:00"
+                    ]
+                },
+                {
+                    "class": "C1",
+                    "unit": "C101",
+                    "type": "1BHK",
+                    "price": "$1380/month",
+                    "appointment_slots": [
+                        "2025-06-25T16:00:00",
+                        "2025-06-27T16:00:00",
+                        "2025-06-28T16:00:00"
+                    ]
+                },
+                {
+                    "class": "C2",
+                    "unit": "C1011",
+                    "type": "1BHK",
+                    "price": "$1410/month",
+                    "appointment_slots": [
+                        "2025-06-30T16:00:00",
+                        "2025-07-01T16:00:00",
+                        "2025-06-02T16:00:00"
+                    ]
+                },
+                {
+                    "class": "C3",
+                    "unit": "C1101",
+                    "type": "1BHK",
+                    "price": "$1490/month",
+                    "appointment_slots": [
+                        "2025-06-25T16:00:00",
+                        "2025-06-26T16:00:00",
+                        "2025-06-29T16:00:00"
+                    ]
+                }
+            ]
+        }
+    ]
+}
