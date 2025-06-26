@@ -46,10 +46,10 @@ An intelligent voice assistant built for apartment leasing and property manageme
 ## 🛠️ Technologies Used
 
 - **Backend**: FastAPI, Python 3.8+
-- **AI/ML**: OpenAI Realtime API, Sentence Transformers, FAISS
+- **AI/ML**: OpenAI Realtime API
 - **Voice**: Twilio Voice API, WebSocket connections
-- **Data**: JSON knowledge base, SQLite/PostgreSQL support
-- **Configuration**: YAML-based configuration system
+- **Data**: JSON knowledge base
+- **Configuration**: Environment variables and direct code configuration
 
 ## 📋 Prerequisites
 
@@ -114,59 +114,34 @@ The server will start on `http://localhost:5050`
 
 ## 🔧 Configuration
 
-### Assistant Personality
+### Assistant Configuration
 
-Create `assistant_config.yaml` to customize the AI assistant:
+The AI assistant's personality and behavior are configured directly in the `main.py` file through the `SYSTEM_MESSAGE` variable. This includes:
 
-```yaml
-assistant_info:
-  name: "AI Leasing Assistant"
-  personality: "friendly_professional"
-  response_style: "concise"
-  max_response_length: 60
-  use_humor: true
-  humor_frequency: "occasional"
+- **Professional and friendly tone** with occasional humor
+- **Concise responses** optimized for voice interaction  
+- **Property-specific knowledge** about STONE Creek Apartments
+- **Greeting behavior** with welcome message and light jokes
+- **Appointment booking** with confirmation details
 
-behaviors:
-  greeting:
-    enabled: true
-    include_joke: true
-  pricing_inquiries:
-    show_range: true
-    suggest_viewing: true
-  appointment_booking:
-    confirm_details: true
-    require_contact_info: true
-```
+### Knowledge Base
 
-### Knowledge Sources
+The application uses a JSON-based knowledge system:
 
-Configure multiple data sources in the configuration:
-
-```yaml
-knowledge_sources:
-  - type: "json_file"
-    path: "knowledge_base.json"
-    refresh_interval: 300
-  - type: "database"
-    connection_string: "${DB_CONNECTION}"
-    refresh_interval: 60
-  - type: "api"
-    endpoint: "${API_ENDPOINT}"
-    refresh_interval: 120
-```
+- **Single JSON file**: `knowledge_base.json` contains all property data
+- **Real-time loading**: Knowledge base is loaded at application startup
+- **Structured data**: Properties, floor plans, amenities, and vacancies
+- **Easy updates**: Simply modify the JSON file and restart the application
 
 ## 📁 Project Structure
 
 ```
 hackathon_ai_assistant/
 ├── main.py                 # FastAPI application and Twilio integration
-├── rag_system.py          # RAG implementation with FAISS and transformers
-├── api_integration.py     # External API integrations
-├── config_system.py       # Configuration management
-├── database_config.py     # Database configurations
+├── test_app.py            # Comprehensive test suite
 ├── knowledge_base.json    # Property data and information
-├── requirements.txt       # Python dependencies
+├── requirements.txt       # Python dependencies (includes test dependencies)
+├── .env                   # Environment variables
 └── README.md             # This file
 ```
 
@@ -207,15 +182,39 @@ AI: "Absolutely! Unit A101 has tour slots available on June 25th at 4:00 PM
 
 ### Running Tests
 
+Install test dependencies:
 ```bash
-python -m pytest tests/
+pip install pytest pytest-asyncio httpx
+```
+
+Run the test suite:
+```bash
+python -m pytest test_app.py -v
+```
+
+Run specific test categories:
+```bash
+# Test API endpoints only
+python -m pytest test_app.py::TestHealthEndpoint -v
+
+# Test WebSocket functionality
+python -m pytest test_app.py::TestWebSocketHandling -v
+
+# Test integration scenarios
+python -m pytest test_app.py::TestIntegrationScenarios -v
+```
+
+Run tests with coverage:
+```bash
+pip install pytest-cov
+python -m pytest test_app.py --cov=main --cov-report=html
 ```
 
 ### Adding New Features
 
-1. **New Knowledge Sources**: Implement in `api_integration.py`
-2. **Response Templates**: Add to `config_system.py`
-3. **RAG Improvements**: Enhance `rag_system.py`
+1. **New Knowledge Sources**: Modify `knowledge_base.json` structure
+2. **Response Templates**: Update `SYSTEM_MESSAGE` in `main.py`
+3. **Assistant Behavior**: Customize the assistant instructions in `main.py`
 
 ### Debugging
 

@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 with open("knowledge_base.json", "r") as file:
     knowledge_base = json.load(file)
 
@@ -35,21 +34,25 @@ You are a friendly and professional AI voice assistant for STONE Creek Apartment
 
 **Guidelines**:
 1. **Tone and Style**: Use a warm, welcoming, and professional tone, like a helpful leasing agent. Keep responses short (1-2 sentences when possible) for voice clarity.
+2. **Name**: Use the name "Tina" in the conversation.
+3. **Property Name**: Use the name "STONE Creek Apartment and Homes" in the conversation.
+4. **Lead Name**: Collect the name from user and use it in the conversation.
+5. **Lead Phone Number**: Collect the phone number from user.
 2. **Accuracy**: Answer queries using only the provided JSON data. Do not invent or speculate beyond the knowledge base.
 3. **Query Handling**:
    - **Floor Plans**: For queries about floor plans (e.g., "What 1BHK apartments are available?"), mention the class (A1, A2, B1), type (1BHK, 2BHK), size, price, occupancy, level, and key features (limit to 3 features for brevity).
    - **Vacancies**: For queries about availability (e.g., "What units are available?"), provide unit number, type, class, price, and appointment slots (formatted as, e.g., "June 25 at 4:00 PM").
    - **Amenities**: For queries about amenities (e.g., "What amenities do you offer?"), list up to 5 amenities and offer to provide more details if asked.
-   - **Bookings**: For booking requests (e.g., "Book a tour for A101 on June 25"), confirm the unit and slot if available, or prompt for clarification (e.g., "Please specify the unit or date"). Format dates as "Month Day at Time" (e.g., "June 25 at 4:00 PM").
-   - **Specific Units**: If a unit (e.g., "A101") is mentioned, provide its details (type, class, price, slots) or say it’s unavailable if not in the JSON.
+   - **Bookings**: For booking requests (e.g., "Book a tour for A101 on June 25"), confirm the unit and slot if available, or prompt for clarification (e.g., "Please specify the unit or date"), and collect the name, email and phone number of the lead. Format dates as "Month Day at Time" (e.g., "June 25 at 4:00 PM").
+   - **Specific Units**: If a unit (e.g., "A101") is mentioned, provide its details (type, class, price, slots) or say it's unavailable if not in the JSON.
    - **Price Queries**: If asked about units under a price (e.g., "Units under $1,200"), filter vacancies by price and list matches.
-4. **Unclear Queries**: If the query is unclear or not covered by the JSON (e.g., "What’s the weather like?"), respond politely: "I’m sorry, I don’t have that information. Can I help with floor plans, vacancies, amenities, or tours?"
+4. **Unclear Queries**: If the query is unclear or not covered by the JSON (e.g., "What's the weather like?"), respond politely: "I'm sorry, I don't have that information. Can I help with floor plans, vacancies, amenities, or tours?"
 5. **Interruptions**: If interrupted (e.g., detected by speech activity), stop speaking immediately and process the new query.
 6. **Engagement**: Occasionally include a light, professional dad joke or owl-themed joke to keep the conversation engaging, but only when appropriate (e.g., after a successful query response). Examples:
    - "Why did the owl move in? It wanted a 'hoot' of a deal!"
    - "Why did the apartment go to therapy? It had too many 'deep-rooted' issues!"
 7. **Voice Interaction**: Avoid complex terms or long lists in responses. Use conversational phrases like "We have a lovely 1BHK A1 unit" or "Let me check that for you."
-8. **Fallback**: If audio transcription fails, respond: "Sorry, I didn’t catch that. Could you repeat it?"
+8. **Fallback**: If audio transcription fails, respond: "Sorry, I didn't catch that. Could you repeat it?"
 
 **Example Interactions**:
 - **User**: "What 1BHK apartments are available?"
@@ -58,13 +61,13 @@ You are a friendly and professional AI voice assistant for STONE Creek Apartment
   **AI**: "STONE Creek offers a swimming pool, fitness center, pet-friendly environment, gated community, and clubhouse. Interested in specific details?"
 - **User**: "Can I book a tour for unit A101 on June 25?"
   **AI**: "Yes, unit A101, a 1BHK A1 at $1,100/month, has a tour slot on June 25 at 4:00 PM. Shall I confirm it?"
-- **User**: "What’s the price of unit A201?"
+- **User**: "What's the price of unit A201?"
   **AI**: "Unit A201 is a 1BHK A2, priced at $1,140/month, with a tour slot on June 25 at 10:00 AM. Want to book it?"
 - **User**: "Tell me about the weather."
-  **AI**: "I’m sorry, I don’t have weather info. Can I help with floor plans, vacancies, amenities, or tours?"
+  **AI**: "I'm sorry, I don't have weather info. Can I help with floor plans, vacancies, amenities, or tours?"
 
 **Initial Greeting**:
-When a call starts, greet the user with: "Hello there! Welcome to STONE Creek Apartment and Homes! I’m your AI leasing assistant, here to help with floor plans, vacancies, or tours. How can I assist you today? By the way, why did the apartment go to therapy? It had too many 'deep-rooted' issues!"
+When a call starts, greet the user with: "Hello there! I'm Tina AI assitant, Welcome to STONE Creek Apartment and Homes! how can I help you today?"
 
 **Constraints**:
 - Do not access external data or APIs beyond the JSON.
@@ -72,7 +75,6 @@ When a call starts, greet the user with: "Hello there! Welcome to STONE Creek Ap
 - Handle interruptions gracefully by stopping and addressing the new query.
 - Use the exact appointment slot times from the JSON, formatted for clarity.
 """
-
 VOICE = 'alloy'
 LOG_EVENT_TYPES = [
     'error', 'response.content.done', 'rate_limits.updated',
@@ -96,7 +98,7 @@ async def handle_incoming_call(request: Request):
     """Handle incoming call and return TwiML response to connect to Media Stream."""
     response = VoiceResponse()
     # <Say> punctuation to improve text-to-speech flow
-    response.say("Please wait while we connect your call to the A. I. voice assistant, powered by Twilio and the Open-A.I. Realtime API")
+    response.say("Please wait while we connect your call to the A.I")
     response.pause(length=1)
     response.say("O.K. you can start talking!")
     host = request.url.hostname
@@ -162,40 +164,6 @@ async def handle_media_stream(websocket: WebSocket):
                     response = json.loads(openai_message)
                     if response['type'] in LOG_EVENT_TYPES:
                         print(f"Received event: {response['type']}", response)
-                    #when recibeing a response such as:
-                        # Received event: response.done {'type': 'response.done', 'event_id': 'event_Ay6rw3ubdNsUMX4urDVLV', 'response': {'object': 'realtime.response', 'id': 'resp_Ay6ru4MmxwRXaKbVu99jU', 'status': 'completed', 'status_details': None, 'output': [{'id': 'item_Ay6rucHQdCLuaZDaArL3M', 'object': 'realtime.item', 'type': 'message', 'status': 'completed', 'role': 'assistant', 'content': [{'type': 'audio', 'transcript': "Hello! You're speaking with your friendly AI assistant. How can I help you today?"}]}], 'conversation_id': 'conv_Ay6rpLbGjOOhi8n3HhDHB', 'modalities': ['text', 'audio'], 'voice': 'alloy', 'output_audio_format': 'g711_ulaw', 'temperature': 0.8, 'max_output_tokens': 'inf', 'usage': {'total_tokens': 221, 'input_tokens': 81, 'output_tokens': 140, 'input_token_details': {'text_tokens': 65, 'audio_tokens': 16, 'cached_tokens': 0, 'cached_tokens_details': {'text_tokens': 0, 'audio_tokens': 0}}, 'output_token_details': {'text_tokens': 31, 'audio_tokens': 109}}, 'metadata': None}}
-                        
-                        #first check if response['type'] == 'response.done' and response['response']['output'] is not None:
-                    if response['type'] == 'response.done':
-                            #print("\n\n\n @Received response.done!!!")
-                            if response['response'] is not None:
-                                # print(f"Received event: {response['type']}", response)
-                                response_object = response['response']
-                                #print(f"\n\n@response_object: {response_object}")
-                                if not response_object['output'] == []:
-                                    #print(f"\n\n@response_object['output']: {response_object['output']}")
-                                    output = response_object['output'][0]
-                                    #print(f"\n\n@output: {output}")
-
-                                    if output['role'] == 'assistant':
-                                        #print(f"\n\n\n @Received assistant response!!!")
-
-                                        #check if output['content'] is not None:
-                                        if output['content'] is not None:
-                                            content = output['content'][0]
-                                            #print(f"\n\n@content: {content}")
-                                            #check if content[`transcript`] is not None:
-                                            if content['transcript'] is not None:
-                                                transcript = content['transcript']
-                                                #(f"\n\n@transcript: {transcript}")
-
-                                                #check if transcript ends with '@END_TWILIO_PHONECALL();':
-                                                if transcript.endswith('GOODBYE();'):
-                                                    print(f"\n\n\n @Received END_TWILIO_PHONECALL response!!!")
-                                                    # Wait for a short duration to ensure all audio is sent before ending the call
-                                                    await asyncio.sleep(10)
-                                                    await websocket.close()
-                                                    return
 
                     if response.get('type') == 'response.audio.delta' and 'delta' in response:
                         audio_payload = base64.b64encode(base64.b64decode(response['delta'])).decode('utf-8')
@@ -280,7 +248,7 @@ async def send_initial_conversation_item(openai_ws):
             "content": [
                 {
                     "type": "input_text",
-                    "text": "Greet the user with 'Hello there! I am an AI voice assistant for STONE Creek Apartment and Homes. How can I assist you today?'"
+                    "text": "Greet the user with 'Hello there! I am an Tina,AI voice assistant for STONE Creek Apartment and Homes. How can I help you?'"
                 }
             ]
         }
