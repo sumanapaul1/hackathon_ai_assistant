@@ -65,7 +65,7 @@ An intelligent voice assistant built for apartment leasing and property manageme
 ```bash
 git clone <repository-url>
 cd hackathon_ai_assistant
-python -m venv env
+python3 -m venv env
 source env/bin/activate  # On Windows: env\Scripts\activate
 pip install -r requirements.txt
 ```
@@ -102,7 +102,7 @@ Edit `knowledge_base.json` with your property details:
 ### 4. Run the Application
 
 ```bash
-python main.py
+python3 main.py
 ```
 
 The server will start on `http://localhost:5050`
@@ -189,25 +189,25 @@ pip install pytest pytest-asyncio httpx
 
 Run the test suite:
 ```bash
-python -m pytest test_app.py -v
+python3 -m pytest test_app.py -v
 ```
 
 Run specific test categories:
 ```bash
 # Test API endpoints only
-python -m pytest test_app.py::TestHealthEndpoint -v
+python3 -m pytest test_app.py::TestHealthEndpoint -v
 
 # Test WebSocket functionality
-python -m pytest test_app.py::TestWebSocketHandling -v
+python3 -m pytest test_app.py::TestWebSocketHandling -v
 
 # Test integration scenarios
-python -m pytest test_app.py::TestIntegrationScenarios -v
+python3 -m pytest test_app.py::TestIntegrationScenarios -v
 ```
 
 Run tests with coverage:
 ```bash
 pip install pytest-cov
-python -m pytest test_app.py --cov=main --cov-report=html
+python3 -m pytest test_app.py --cov=main --cov-report=html
 ```
 
 ### Adding New Features
