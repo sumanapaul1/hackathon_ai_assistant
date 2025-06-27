@@ -6,8 +6,9 @@ import websockets
 from fastapi import FastAPI, WebSocket, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.websockets import WebSocketDisconnect
-from twilio.twiml.voice_response import VoiceResponse, Connect, Say, Stream
+from twilio.twiml.voice_response import VoiceResponse, Connect, Say, Stream, Start, Transcription
 from dotenv import load_dotenv
+from twilio.rest import Client
 
 load_dotenv()
 
@@ -93,11 +94,40 @@ if not OPENAI_API_KEY:
 async def index_page():
     return {"message": "Twilio Media Stream Server is running!"}
 
+@app.api_route("/transcript-callback", methods=["POST"])
+async def transcript_callback(request: Request):
+    # Extract transcription details from the webhook
+    print("****Comming here*******")
+    form_data = await request.form()
+    form_data = dict(form_data)
+    print(f" Test Form data {form_data}")
+    transcription = {
+        'TranscriptionSid': form_data.get('TranscriptionSid'),
+        'TranscriptionData': form_data.get('TranscriptionData'),
+        'TranscriptionStatus': form_data.get('Track')
+    }
+    # Print or process the JSON transcription
+    print("Transcription JSON:", transcription)
+    # Optionally save to a file or database
+    with open('transcription.json', 'a') as f:
+        import json
+        json.dump(transcription, f, indent=4)
+        f.write('\n')
+    # Return empty response (Twilio expects 200 or 204 for status callbacks)
+    return {"status": "200"}
+
 @app.api_route("/incoming-call", methods=["GET", "POST"])
 async def handle_incoming_call(request: Request):
     """Handle incoming call and return TwiML response to connect to Media Stream."""
     response = VoiceResponse()
-    # <Say> punctuation to improve text-to-speech flow
+    start = Start()
+    start.transcription(
+    status_callback_url='ngrok-free.app/transcript-callback',
+    language_code='en-US',
+    inbound_track_label='agent',
+    outbound_track_label='customer'
+    )
+    response.append(start)
     response.say("Please wait while we connect your call to the A.I")
     response.pause(length=1)
     response.say("O.K. you can start talking!")
@@ -128,7 +158,7 @@ async def handle_media_stream(websocket: WebSocket):
         last_assistant_item = None
         mark_queue = []
         response_start_timestamp_twilio = None
-        
+
         async def receive_from_twilio():
             """Receive audio data from Twilio and send it to the OpenAI Realtime API."""
             nonlocal stream_sid, latest_media_timestamp
