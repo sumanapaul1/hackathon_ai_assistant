@@ -3,12 +3,28 @@ import json
 import base64
 import asyncio
 import websockets
-from fastapi import FastAPI, WebSocket, Request
+import re
+from datetime import datetime
+from fastapi import FastAPI, WebSocket, Request, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.websockets import WebSocketDisconnect
 from twilio.twiml.voice_response import VoiceResponse, Connect, Say, Stream, Start, Transcription
 from dotenv import load_dotenv
 from twilio.rest import Client
+
+# Import httpx for HTTP requests
+try:
+    import httpx
+    print("httpx successfully imported")
+except ImportError as e:
+    print(f"Failed to import httpx: {e}")
+
+# Explicitly import python-multipart to ensure it's available
+try:
+    import multipart
+    print("python-multipart successfully imported")
+except ImportError as e:
+    print(f"Failed to import python-multipart: {e}")
 
 load_dotenv()
 
@@ -18,6 +34,16 @@ with open("knowledge_base.json", "r") as file:
 # Configuration
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 PORT = int(os.getenv('PORT', 5050))
+RAILS_SERVER_URL = os.getenv('RAILS_SERVER_URL', 'http://localhost:3000')  # Your Rails server URL
+
+# Lead extraction patterns
+EMAIL_PATTERN = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+PHONE_PATTERN = r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b|\b\(\d{3}\)\s?\d{3}[-.]?\d{4}\b'
+NAME_PATTERNS = [
+    r'(?:my name is|i\'m|i am|this is|call me)\s+([a-zA-Z\s]+?)(?:\s|$|[.,!?])',
+    r'(?:name)\s*[:=]\s*([a-zA-Z\s]+?)(?:\s|$|[.,!?])',
+    r'(?:i\'m|i am)\s+([a-zA-Z\s]+?)(?:\s|$|[.,!?])'
+]
 SYSTEM_MESSAGE = """
 You are a friendly and professional AI voice assistant for STONE Creek Apartment and Homes, located at 2700 Trimmier Rd, Killeen, TX 76542. Your role is to assist potential tenants by providing accurate information about apartment floor plans, vacancies, amenities, and appointment scheduling based solely on the provided JSON knowledge base. You are designed for voice interactions, so your responses should be concise, natural, and suitable for spoken communication. 
 
@@ -85,6 +111,275 @@ LOG_EVENT_TYPES = [
 ]
 SHOW_TIMING_MATH = False
 
+def parse_transcription_file(file_path="transcription.json"):
+    """Parse the transcription.json file and extract conversation data."""
+    conversations = {}
+    
+    try:
+        with open(file_path, 'r') as file:
+            content = file.read().strip()
+            if not content:
+                return conversations
+                
+            # Split by lines and parse each JSON object (each line is a separate JSON object)
+            lines = content.split('\n')
+            print(f"📄 Found {len(lines)} lines in transcription file")
+            
+            for line_num, line in enumerate(lines, 1):
+                line = line.strip()
+                if line and len(line) > 5:  # Skip very short lines
+                    # Clean up common JSON formatting issues
+                    if line.startswith('{') and not line.endswith('}'):
+                        # Try to find the next complete JSON object
+                        continue
+                    
+                    try:
+                        data = json.loads(line)
+                        sid = data.get('TranscriptionSid')
+                        print(f"   Line {line_num}: SID={sid}, Status={data.get('TranscriptionStatus')}")
+                        
+                        if sid:
+                            if sid not in conversations:
+                                conversations[sid] = {
+                                    'customer_messages': [],
+                                    'ai_messages': [],
+                                    'all_messages': []
+                                }
+                            
+                            transcript_data = data.get('TranscriptionData')
+                            if transcript_data:
+                                try:
+                                    # Parse the nested JSON string
+                                    transcript_json = json.loads(transcript_data)
+                                    transcript = transcript_json.get('transcript', '').strip()
+                                    confidence = transcript_json.get('confidence', 0)
+                                    status = data.get('TranscriptionStatus')
+                                    
+                                    print(f"     Transcript: '{transcript}' (confidence: {confidence})")
+                                    
+                                    if transcript and confidence > 0.3:  # Lowered confidence threshold
+                                        message = {
+                                            'text': transcript,
+                                            'confidence': confidence,
+                                            'timestamp': datetime.now().isoformat()
+                                        }
+                                        
+                                        conversations[sid]['all_messages'].append(message)
+                                        
+                                        if status == 'inbound_track':  # Customer speaking
+                                            conversations[sid]['customer_messages'].append(message)
+                                        elif status == 'outbound_track':  # AI speaking
+                                            conversations[sid]['ai_messages'].append(message)
+                                except json.JSONDecodeError as nested_e:
+                                    print(f"     Nested JSON decode error: {nested_e}")
+                                        
+                    except json.JSONDecodeError as e:
+                        print(f"   Line {line_num}: JSON decode error - {e}")
+                        print(f"     Problematic line: {line[:100]}...")
+                        continue
+                        
+    except FileNotFoundError:
+        print(f"Transcription file {file_path} not found")
+        
+    print(f"🎯 Parsed {len(conversations)} conversations")
+    return conversations
+
+def extract_lead_info(conversation_data):
+    """Extract lead information from conversation transcripts."""
+    customer_text = ' '.join([msg['text'] for msg in conversation_data.get('customer_messages', [])])
+    all_text = ' '.join([msg['text'] for msg in conversation_data.get('all_messages', [])])
+    
+    lead_info = {
+        'name': None,
+        'email': None,
+        'phone': None,
+        'interests': [],
+        'appointment_requested': False,
+        'conversation_summary': customer_text[:500],  # First 500 chars
+        'message_count': len(conversation_data.get('all_messages', [])),
+        'source': 'voice_call'
+    }
+    
+    # Extract email
+    email_match = re.search(EMAIL_PATTERN, customer_text, re.IGNORECASE)
+    if email_match:
+        lead_info['email'] = email_match.group()
+    
+    # Extract phone
+    phone_match = re.search(PHONE_PATTERN, customer_text)
+    if phone_match:
+        lead_info['phone'] = phone_match.group()
+    
+    # Extract name
+    for pattern in NAME_PATTERNS:
+        name_match = re.search(pattern, customer_text, re.IGNORECASE)
+        if name_match:
+            candidate_name = name_match.group(1).strip().title()
+            # Simple validation
+            if len(candidate_name) > 1 and candidate_name not in ['Hello', 'Hi', 'Thanks']:
+                lead_info['name'] = candidate_name
+                break
+    
+    # Extract interests
+    interests_keywords = {
+        '1BHK': ['1bhk', 'one bedroom', '1 bedroom'],
+        '2BHK': ['2bhk', 'two bedroom', '2 bedroom'],
+        'Swimming Pool': ['pool', 'swimming'],
+        'Fitness Center': ['gym', 'fitness'],
+        'Pet Friendly': ['pet', 'dog', 'cat'],
+        'Ground Floor': ['ground floor', 'first floor']
+    }
+    
+    for interest, keywords in interests_keywords.items():
+        if any(keyword in all_text.lower() for keyword in keywords):
+            lead_info['interests'].append(interest)
+    
+    # Check for appointment requests
+    appointment_keywords = ['tour', 'visit', 'appointment', 'schedule', 'book', 'see the place']
+    if any(keyword in all_text.lower() for keyword in appointment_keywords):
+        lead_info['appointment_requested'] = True
+    
+    return lead_info
+
+async def create_lead_in_rails(lead_info, transcription_sid):
+    """Send lead information to Rails server to create a lead."""
+    try:
+        # Prepare payload for Rails API
+        payload = {
+            'lead': {
+                'email': lead_info.get('email'),
+                'payload': {
+                    'source': 'voice_call_ai',
+                    'transcription_sid': transcription_sid,
+                    'contact_info': {
+                        'name': lead_info.get('name'),
+                        'phone': lead_info.get('phone'),
+                        'email': lead_info.get('email')
+                    },
+                    'interests': lead_info.get('interests', []),
+                    'appointments': {
+                        'requested': lead_info.get('appointment_requested', False),
+                        'status': 'requested' if lead_info.get('appointment_requested') else 'none'
+                    },
+                    'conversation_summary': {
+                        'total_messages': lead_info.get('message_count', 0),
+                        'summary': lead_info.get('conversation_summary', ''),
+                        'source': 'voice_ai_assistant'
+                    },
+                    'lead_score': calculate_lead_score(lead_info),
+                    'created_at': datetime.now().isoformat()
+                }
+            }
+        }
+        
+        rails_url = f"{RAILS_SERVER_URL}/leads"
+        print(f"🚀 Sending POST request to Rails: {rails_url}")
+        print(f"📦 Payload: {json.dumps(payload, indent=2)}")
+        
+        # Ensure we're using httpx properly for POST request
+        if 'httpx' not in globals():
+            print("❌ httpx not available, falling back to requests")
+            import requests
+            response = requests.post(
+                rails_url,
+                json=payload,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                timeout=10.0
+            )
+            
+            if response.status_code in [200, 201]:
+                print(f"✅ Lead created successfully in Rails: {response.json()}")
+                return True
+            else:
+                print(f"❌ Failed to create lead: {response.status_code} - {response.text}")
+                return False
+        else:
+            async with httpx.AsyncClient() as client:
+                print("📡 Making POST request with httpx...")
+                response = await client.post(
+                    rails_url,
+                    json=payload,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'User-Agent': 'FastAPI-Voice-Assistant/1.0'
+                    },
+                    timeout=10.0
+                )
+                
+                print(f"📈 Response status: {response.status_code}")
+                print(f"📄 Response headers: {dict(response.headers)}")
+                
+                if response.status_code in [200, 201]:
+                    try:
+                        response_data = response.json()
+                        print(f"✅ Lead created successfully in Rails: {response_data}")
+                        return True
+                    except:
+                        print(f"✅ Lead created successfully in Rails (non-JSON response): {response.text}")
+                        return True
+                else:
+                    print(f"❌ Failed to create lead: {response.status_code}")
+                    print(f"❌ Response text: {response.text}")
+                    return False
+                
+    except Exception as e:
+        print(f"❌ Error creating lead in Rails: {e}")
+        import traceback
+        print(f"❌ Full traceback: {traceback.format_exc()}")
+        return False
+
+def calculate_lead_score(lead_info):
+    """Calculate lead score based on available information."""
+    score = 0
+    
+    # Contact information
+    if lead_info.get('email'): score += 30
+    if lead_info.get('phone'): score += 25
+    if lead_info.get('name'): score += 15
+    
+    # Engagement indicators
+    if lead_info.get('appointment_requested'): score += 20
+    if lead_info.get('interests'): score += 10
+    if lead_info.get('message_count', 0) >= 5: score += 10
+    
+    return min(score, 100)  # Cap at 100
+
+async def process_completed_transcriptions():
+    """Process transcriptions and create leads for completed conversations."""
+    print("🔍 Starting transcription processing...")
+    conversations = parse_transcription_file()
+    
+    print(f"📊 Found {len(conversations)} conversations")
+    
+    for sid, conversation_data in conversations.items():
+        print(f"📞 Processing conversation {sid}")
+        print(f"   - Customer messages: {len(conversation_data.get('customer_messages', []))}")
+        print(f"   - AI messages: {len(conversation_data.get('ai_messages', []))}")
+        
+        # Check if conversation has enough data to create a lead
+        if len(conversation_data.get('customer_messages', [])) >= 1:  # Lowered threshold
+            lead_info = extract_lead_info(conversation_data)
+            print(f"   - Extracted lead info: {lead_info}")
+            
+            # Only create lead if we have meaningful information
+            if (lead_info.get('email') or lead_info.get('phone') or 
+                lead_info.get('appointment_requested') or lead_info.get('interests') or
+                len(conversation_data.get('customer_messages', [])) >= 2):  # Or if enough conversation
+                
+                print(f"✅ Creating lead for conversation {sid}")
+                result = await create_lead_in_rails(lead_info, sid)
+                print(f"   - Lead creation result: {result}")
+            else:
+                print(f"⏭️  Skipping conversation {sid} - not enough meaningful data")
+        else:
+            print(f"⏭️  Skipping conversation {sid} - not enough messages")
+    
+    print("🏁 Transcription processing completed")
+
 app = FastAPI()
 
 if not OPENAI_API_KEY:
@@ -94,25 +389,101 @@ if not OPENAI_API_KEY:
 async def index_page():
     return {"message": "Twilio Media Stream Server is running!"}
 
+@app.get("/process-leads", response_class=JSONResponse)
+async def process_leads_endpoint():
+    """Manual endpoint to process transcriptions and create leads."""
+    print("🔄 Processing transcriptions to create leads...")
+    await process_completed_transcriptions()
+    return {"message": "Lead processing completed", "status": "success"}
+
+@app.get("/test-lead-creation", response_class=JSONResponse)
+async def test_lead_creation():
+    """Test endpoint to verify lead creation functionality."""
+    # Test with sample data
+    test_lead_info = {
+        'name': 'John Doe',
+        'email': 'john.doe@example.com',
+        'phone': '555-123-4567',
+        'interests': ['1BHK', 'Swimming Pool'],
+        'appointment_requested': True,
+        'conversation_summary': 'Customer interested in 1BHK apartment with pool access',
+        'message_count': 8,
+        'source': 'voice_call_test'
+    }
+    
+    result = await create_lead_in_rails(test_lead_info, "TEST_SID_123")
+    return {"message": "Test lead creation", "success": result}
+
 @app.api_route("/transcript-callback", methods=["POST"])
 async def transcript_callback(request: Request):
     # Extract transcription details from the webhook
-    print("****Comming here*******")
-    form_data = await request.form()
-    form_data = dict(form_data)
-    print(f" Test Form data {form_data}")
-    transcription = {
-        'TranscriptionSid': form_data.get('TranscriptionSid'),
-        'TranscriptionData': form_data.get('TranscriptionData'),
-        'TranscriptionStatus': form_data.get('Track')
-    }
-    # Print or process the JSON transcription
-    print("Transcription JSON:", transcription)
-    # Optionally save to a file or database
-    with open('transcription.json', 'a') as f:
-        import json
-        json.dump(transcription, f, indent=4)
-        f.write('\n')
+    print("****Coming here*******")
+    
+    try:
+        # Try to get form data first
+        content_type = request.headers.get("content-type", "")
+        
+        if "application/x-www-form-urlencoded" in content_type:
+            # Handle URL-encoded form data
+            body = await request.body()
+            from urllib.parse import parse_qs
+            form_data = parse_qs(body.decode())
+            # Convert list values to single values
+            form_data = {k: v[0] if v else None for k, v in form_data.items()}
+        elif "multipart/form-data" in content_type:
+            # Handle multipart form data (requires python-multipart)
+            form_data = await request.form()
+            form_data = dict(form_data)
+        else:
+            # Try JSON if it's not form data
+            try:
+                form_data = await request.json()
+            except:
+                # Fallback to reading raw body
+                body = await request.body()
+                print(f"Raw body: {body}")
+                form_data = {}
+        
+        print(f"Test Form data {form_data}")
+        
+        transcription = {
+            'TranscriptionSid': form_data.get('TranscriptionSid'),
+            'TranscriptionData': form_data.get('TranscriptionData'),
+            'TranscriptionStatus': form_data.get('Track')
+        }
+        
+        # Print or process the JSON transcription
+        print("Transcription JSON:", transcription)
+        
+        # Optionally save to a file or database
+        with open('transcription.json', 'a') as f:
+            import json
+            json.dump(transcription, f, separators=(',', ':'))  # Compact format, one line per object
+            f.write('\n')
+            
+        # Check if conversation is complete and process lead automatically
+        transcript_data = transcription.get('TranscriptionData')
+        transcript_status = transcription.get('TranscriptionStatus')
+        
+        # Conversation is complete when both TranscriptionData and TranscriptionStatus are null
+        if transcript_data is None and transcript_status is None:
+            print("🏁 Conversation completed - processing lead automatically...")
+            # Process leads asynchronously in background
+            asyncio.create_task(process_completed_transcriptions())
+        elif transcript_data:
+            # Log the transcript for monitoring
+            try:
+                transcript_json = json.loads(transcript_data)
+                transcript_text = transcript_json.get('transcript', '').strip()
+                if transcript_text:
+                    print(f"📝 Transcription: {transcript_text}")
+            except json.JSONDecodeError:
+                pass
+            
+    except Exception as e:
+        print(f"Error processing transcript callback: {e}")
+        return {"status": "error", "message": str(e)}
+    
     # Return empty response (Twilio expects 200 or 204 for status callbacks)
     return {"status": "200"}
 
@@ -122,7 +493,7 @@ async def handle_incoming_call(request: Request):
     response = VoiceResponse()
     start = Start()
     start.transcription(
-    status_callback_url='ngrok-free.app/transcript-callback',
+    status_callback_url='https://870b-2405-201-c404-40d6-4d67-efb6-b575-ec34.ngrok-free.app/transcript-callback',
     language_code='en-US',
     inbound_track_label='agent',
     outbound_track_label='customer'
